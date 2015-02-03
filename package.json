@@ -1,25 +1,27 @@
 {
   "name": "gulp-artifactory-upload",
   "description": "Gulp plugin to deploy files to a JFrog Artifactory server.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "homepage": "https://github.com/peteward44/gulp-artifactory-upload",
   "repository": {
-	"type": "git",
-	"url": "https://github.com/peteward44/gulp-artifactory-upload.git"
+    "type": "git",
+    "url": "https://github.com/peteward44/gulp-artifactory-upload.git"
   },
   "author": "Pete Ward <peteward44@gmail.com>",
   "main": "./index.js",
   "keywords": [
     "gulpplugin",
-	"gulpfriendly"
+    "gulpfriendly"
   ],
   "dependencies": {
-	"through2": "*",
-	"gulp-util": "*",
-	"request": "*",
-	"streamifier": "*"
+    "through2": "^0.6.3",
+    "gulp-util": "^3.0.3",
+    "request": "^2.53.0",
+    "streamifier": "^0.1.0"
   },
   "devDependencies": {
+    "mocha": "^2.1.0",
+    "should": "^4.6.3"
   },
   "engines": {
     "node": ">= 0.10.0"
@@ -33,5 +35,8 @@
   "readmeFilename": "README.md",
   "bugs": {
     "url": "https://github.com/peteward44/gulp-artifactory-upload/issues"
+  },
+  "scripts": {
+    "test": "node_modules/.bin/mocha"
   }
 }

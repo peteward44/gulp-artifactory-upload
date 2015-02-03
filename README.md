@@ -2,7 +2,7 @@
 Gulp plugin to deploy files to a JFrog Artifactory server.
 
 ```
-npm install gulp-artifactory-upload --save
+npm install gulp-artifactory-upload --save-dev
 ```
 
 Example usage
