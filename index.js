@@ -5,9 +5,13 @@
 var through = require('through2')
 	, gutil = require('gulp-util')
 	, request = require('request')
-	, streamifier = require('streamifier');
+	, es = require('event-stream')
+	, BufferStreams = require('bufferstreams')
+	, validUrl = require('valid-url');
 
 	
+var PLUGIN_NAME = 'gulp-artifactory-upload';
+
 var parseResponse = function( responseData, callback ) {
 
 	var response = JSON.parse( responseData );
@@ -43,45 +47,68 @@ var handleResponse = function( response, callback ) {
 };
 
 
-var deploy = function(options) {
-	options = options || {};
-	
-	if ( typeof options.url !== 'string' ) {
-		throw new Error( "Artifactory upload plugin requires url parameter" );
-	}
-
-	var func = function(file, enc, callback) {
-		var that = this;
-		
-		if ( file.isNull() ) {
-			callback(null, file);
-			return;
-		}
+var process = function( url, options, contentsBuffer, callback ) {
 			
-		var req = request.put( options.url );
-		if ( options.username && options.password ) {
-			req.auth(options.username, options.password, true);
-		}
-		req.on( 'error', function( err ) {
+	var req = request.put( url );
+	if ( options.username && options.password ) {
+		req.auth(options.username, options.password, true);
+	}
+	req.on( 'error', function( err ) {
+			callback( err );
+		} )
+		.on( 'response', function( response ) {
+			handleResponse( response, function( err ) {
 				callback( err );
-			} )
-			.on( 'response', function( response ) {
-				handleResponse( response, function( err ) {
-					if ( !err ) {
-						that.push(file);
-					}
-					callback( err );
-				} );
 			} );
+		} );
+
+	req.write( contentsBuffer );
+};
+
+
+var deploy = function(options) {
+	var url;
+	var optionsType = typeof options;
+	if ( optionsType === 'string' ) {
+		url = options;
+	} else if ( optionsType === 'object' ) {
+		url = options.url;
+	}
+	
+	if ( url === undefined || !validUrl.isUri(url) ) {
+		throw new Error( "Invalid URL: '" + url + "'" )
+	}
+	
+	var func = function(file, callback) {
 		
-		var stream = file.contents;
-		if ( file.isBuffer() ) {
-			stream = streamifier.createReadStream( file.contents );
+		if (file.isNull()) {
+			// Nothing to do if no contents
+			callback(null, file);
 		}
-		stream.pipe( req );
+		else if (file.isStream()) {
+			file.contents = file.contents.pipe(new BufferStreams(function(err, buf, cb) {
+				try {
+					if (err) {
+						return cb(new gutil.PluginError(PLUGIN_NAME, err.message));
+					}
+					process(url, options, buf, cb);
+				}
+				catch (err) {
+					cb(new gutil.PluginError(PLUGIN_NAME, err.message));
+				}
+			}));
+		}
+		else if (file.isBuffer()) {
+			try {
+				process(url, options, file.contents, callback);
+			}
+			catch (err) {
+				callback(err, null);
+			}
+		}
 	};
 
-	return through.obj(func);
+	return es.map( func );
 };
 
 
