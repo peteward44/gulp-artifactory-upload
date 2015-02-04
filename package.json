@@ -14,17 +14,21 @@
     "gulpfriendly"
   ],
   "dependencies": {
-    "bufferstreams": "0.0.2",
-    "event-stream": "^3.2.2",
     "gulp-util": "^3.0.3",
     "request": "^2.53.0",
+    "streamifier": "^0.1.0",
     "through2": "^0.6.3",
     "valid-url": "^1.0.9"
   },
   "devDependencies": {
+    "crc": "^3.2.1",
+    "glob": "^4.3.5",
     "gulp": "^3.8.10",
+    "gulp-tap": "^0.1.3",
     "mocha": "^2.1.0",
+    "promise": "^6.1.0",
     "should": "^4.6.3",
+    "should-eventually": "^0.1.4",
     "stream-array": "^1.0.1",
     "stream-assert": "^2.0.2"
   },

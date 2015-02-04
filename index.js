@@ -4,9 +4,9 @@
 
 var through = require('through2')
 	, gutil = require('gulp-util')
+	, path = require('path')
 	, request = require('request')
-	, es = require('event-stream')
-	, BufferStreams = require('bufferstreams')
+	, streamifier = require('streamifier')
 	, validUrl = require('valid-url');
 
 	
@@ -14,6 +14,7 @@ var PLUGIN_NAME = 'gulp-artifactory-upload';
 
 var parseResponse = function( responseData, callback ) {
 
+//	console.log( responseData );
 	var response = JSON.parse( responseData );
 	if ( response.errors ) {
 		var errStr = '';
@@ -37,24 +38,25 @@ var handleResponse = function( response, callback ) {
 		responseData += data;
 	});
 	response.on('end', function() {
-		try {
-			parseResponse( responseData, callback );
-		}
-		catch ( err ) {
-			callback( err );
-		}
+		parseResponse( responseData, callback );
 	});
 };
 
 
-var process = function( url, options, contentsBuffer, callback ) {
-			
+var processFile = function( url, options, stream, callback ) {
+
 	var req = request.put( url );
 	if ( options.username && options.password ) {
 		req.auth(options.username, options.password, true);
 	}
+	
+	var called = false;
+
 	req.on( 'error', function( err ) {
-			callback( err );
+			if ( !called ) {
+				called = true;
+				callback( err );
+			}
 		} )
 		.on( 'response', function( response ) {
 			handleResponse( response, function( err ) {
@@ -62,7 +64,18 @@ var process = function( url, options, contentsBuffer, callback ) {
 			} );
 		} );
 
-	req.write( contentsBuffer );
+	stream.pipe( req );
+};
+
+
+var appendUrl = function( url, filename ) {
+	if ( url.length === 0 ) {
+		return url;
+	}
+	if ( url[ url.length-1 ] !== '/' ) {
+		url += '/';
+	}
+	return url + filename;
 };
 
 
@@ -78,37 +91,20 @@ var deploy = function(options) {
 	if ( url === undefined || !validUrl.isUri(url) ) {
 		throw new Error( "Invalid URL: '" + url + "'" )
 	}
-	
-	var func = function(file, callback) {
-		
-		if (file.isNull()) {
-			// Nothing to do if no contents
-			callback(null, file);
-		}
-		else if (file.isStream()) {
-			file.contents = file.contents.pipe(new BufferStreams(function(err, buf, cb) {
-				try {
-					if (err) {
-						return cb(new gutil.PluginError(PLUGIN_NAME, err.message));
-					}
-					process(url, options, buf, cb);
-				}
-				catch (err) {
-					cb(new gutil.PluginError(PLUGIN_NAME, err.message));
-				}
-			}));
-		}
-		else if (file.isBuffer()) {
-			try {
-				process(url, options, file.contents, callback);
-			}
-			catch (err) {
-				callback(err, null);
-			}
+
+	var func = function(file, enc, callback) {
+
+		var filename = path.basename( file.path );
+		if (file.isStream()) {
+			processFile( appendUrl( url, filename ), options, file.contents, callback );
+		} else if (file.isBuffer()) {
+			processFile( appendUrl( url, filename ), options, streamifier.createReadStream( file.contents ), callback);
+		} else if ( file.isNull() ) {
+			callback();
 		}
 	};
 
-	return es.map( func );
+	return through.obj(func);
 };
 
 
