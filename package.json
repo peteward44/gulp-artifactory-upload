@@ -42,6 +42,7 @@
     "url": "https://github.com/peteward44/gulp-artifactory-upload/issues"
   },
   "scripts": {
-    "test": "node_modules/.bin/mocha"
+	"test": "node_modules/.bin/mocha",
+    "testxml": "node_modules/.bin/mocha --recursive -R xunit test/ > test_reports/test-reports.xml"
   }
 }
