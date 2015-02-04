@@ -68,14 +68,14 @@ var processFile = function( url, options, stream, callback ) {
 };
 
 
-var appendUrl = function( url, filename ) {
+var appendUrl = function( url, options, filename ) {
 	if ( url.length === 0 ) {
 		return url;
 	}
 	if ( url[ url.length-1 ] !== '/' ) {
 		url += '/';
 	}
-	return url + filename;
+	return url + ( options.rename ? options.rename( filename ) : filename );
 };
 
 
@@ -96,9 +96,9 @@ var deploy = function(options) {
 
 		var filename = path.basename( file.path );
 		if (file.isStream()) {
-			processFile( appendUrl( url, filename ), options, file.contents, callback );
+			processFile( appendUrl( url, options, filename ), options, file.contents, callback );
 		} else if (file.isBuffer()) {
-			processFile( appendUrl( url, filename ), options, streamifier.createReadStream( file.contents ), callback);
+			processFile( appendUrl( url, options, filename ), options, streamifier.createReadStream( file.contents ), callback);
 		} else if ( file.isNull() ) {
 			callback();
 		}

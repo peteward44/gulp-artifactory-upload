@@ -8,7 +8,6 @@ var artifactoryUpload = require('../');
 var assert = require('stream-assert');
 var gulp = require('gulp');
 var path = require('path');
-var tap = require('gulp-tap');
 var File = require('gulp-util').File;
 var should = require('should');
 var request = require('request');
@@ -34,14 +33,15 @@ var uploadTest = function( testName, url, src, buffered ) {
 
 
 var verifyFile = function( file, url, src, done ) {
-	var req = request( url + "/" + path.basename( file ) );
+	var req = request( { url: url + "/" + path.basename( file ), encoding: 'ascii' } );
 	var data = '';
 	req.on('data', function(response){
-		data += response;
+		data += response.toString();
 	}); 
 	req.on('end', function(string){
 		var downloadedCrc = crc.crc32( data );
-		var originalCrc = crc.crc32( fs.readFileSync( file ) );
+		var original = fs.readFileSync( file, { encoding: 'ascii' } );
+		var originalCrc = crc.crc32( original );
 		downloadedCrc.should.equal( originalCrc );
 		done();
 	});
@@ -52,13 +52,12 @@ var verifyTest = function( testName, url, src, buffered ) {
 	it( testName, function( done ) {
 	
 		glob( fixtures( src ), {}, function( err, files ) {
-		
 			var index = 0;
 			var recurse = function() {
 				verifyFile( files[ index ], url, src, function() {
 					index++;
 					if ( index < files.length ) {
-						recurse( files[ index ], url, src, recurse );
+						recurse();
 					} else {
 						done();
 					}
