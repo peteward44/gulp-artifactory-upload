@@ -4,12 +4,17 @@
 
 var through = require('through2')
 	, gutil = require('gulp-util')
+	, path = require('path')
 	, request = require('request')
-	, streamifier = require('streamifier');
+	, streamifier = require('streamifier')
+	, validUrl = require('valid-url');
 
 	
+var PLUGIN_NAME = 'gulp-artifactory-upload';
+
 var parseResponse = function( responseData, callback ) {
 
+//	console.log( responseData );
 	var response = JSON.parse( responseData );
 	if ( response.errors ) {
 		var errStr = '';
@@ -33,52 +38,70 @@ var handleResponse = function( response, callback ) {
 		responseData += data;
 	});
 	response.on('end', function() {
-		try {
-			parseResponse( responseData, callback );
-		}
-		catch ( err ) {
-			callback( err );
-		}
+		parseResponse( responseData, callback );
 	});
 };
 
 
-var deploy = function(options) {
-	options = options || {};
+var processFile = function( url, options, stream, callback ) {
+
+	var req = request.put( url );
+	if ( options.username && options.password ) {
+		req.auth(options.username, options.password, true);
+	}
 	
-	if ( typeof options.url !== 'string' ) {
-		throw new Error( "Artifactory upload plugin requires url parameter" );
+	var called = false;
+
+	req.on( 'error', function( err ) {
+			if ( !called ) {
+				called = true;
+				callback( err );
+			}
+		} )
+		.on( 'response', function( response ) {
+			handleResponse( response, function( err ) {
+				callback( err );
+			} );
+		} );
+
+	stream.pipe( req );
+};
+
+
+var appendUrl = function( url, options, filename ) {
+	if ( url.length === 0 ) {
+		return url;
+	}
+	if ( url[ url.length-1 ] !== '/' ) {
+		url += '/';
+	}
+	return url + ( options.rename ? options.rename( filename ) : filename );
+};
+
+
+var deploy = function(options) {
+	var url;
+	var optionsType = typeof options;
+	if ( optionsType === 'string' ) {
+		url = options;
+	} else if ( optionsType === 'object' ) {
+		url = options.url;
+	}
+	
+	if ( url === undefined || !validUrl.isUri(url) ) {
+		throw new Error( "Invalid URL: '" + url + "'" )
 	}
 
 	var func = function(file, enc, callback) {
-		var that = this;
-		
-		if ( file.isNull() ) {
-			callback(null, file);
-			return;
+
+		var filename = path.basename( file.path );
+		if (file.isStream()) {
+			processFile( appendUrl( url, options, filename ), options, file.contents, callback );
+		} else if (file.isBuffer()) {
+			processFile( appendUrl( url, options, filename ), options, streamifier.createReadStream( file.contents ), callback);
+		} else if ( file.isNull() ) {
+			callback();
 		}
-			
-		var req = request.put( options.url );
-		if ( options.username && options.password ) {
-			req.auth(options.username, options.password, true);
-		}
-		req.on( 'error', function( err ) {
-				callback( err );
-			} )
-			.on( 'response', function( response ) {
-				handleResponse( response, function( err ) {
-					if ( !err ) {
-						that.push(file);
-					}
-					callback( err );
-				} );
-			} );
-		
-		var stream = file.contents;
-		if ( file.isBuffer() ) {
-			stream = streamifier.createReadStream( file.contents );
-		}
-		stream.pipe( req );
 	};
 
 	return through.obj(func);

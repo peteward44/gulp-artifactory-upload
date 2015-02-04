@@ -1,8 +1,9 @@
 # gulp-artifactory-upload
 Gulp plugin to deploy files to a JFrog Artifactory server.
+Unlike grunt-artifactory-artifact, works on Windows/Mac/Linux
 
 ```
-npm install gulp-artifactory-upload --save
+npm install gulp-artifactory-upload --save-dev
 ```
 
 Example usage
