@@ -14,9 +14,10 @@ var artifactoryUpload = require('gulp-artifactory-upload');
 gulp.task( 'deploy', function() {
 	return gulp.src( 'test.zip' )
 		.pipe( artifactoryUpload( {
-				url: 'http://artifactory.server.com:8081/artifactory/libs-release-local/test.zip',
+				url: 'http://artifactory.server.com:8081/artifactory/libs-release-local',
 				username: 'user', // optional
-				password: 'password' // optional
+				password: 'password' // optional,
+				rename: function( filename ) { return filename + "1"; } // optional
 			} ) )
 		.on('error', gutil.log);
 } );
