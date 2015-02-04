@@ -26,7 +26,8 @@
     "gulp": "^3.8.10",
     "mocha": "^2.1.0",
     "should": "^4.6.3",
-    "stream-assert": "^2.0.2"
+    "stream-assert": "^2.0.2",
+    "xunit-file": "0.0.6"
   },
   "engines": {
     "node": ">= 0.10.0"
@@ -42,7 +43,7 @@
     "url": "https://github.com/peteward44/gulp-artifactory-upload/issues"
   },
   "scripts": {
-	"test": "node_modules/.bin/mocha",
-    "testxml": "node_modules/.bin/mocha --recursive -R xunit test/ > test_reports/test-reports.xml"
+    "test": "node_modules/.bin/mocha",
+    "testxml": "node_modules/.bin/mocha --recursive -R xunit-file test/"
   }
 }
