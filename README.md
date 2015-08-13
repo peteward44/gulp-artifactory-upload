@@ -23,5 +23,5 @@ gulp.task( 'deploy', function() {
 } );
 ```
 
-To create zip files, i would recommend archiver https://www.npmjs.com/package/archiver.
+To create zip files, i would recommend archiver https://www.npmjs.com/package/archiver or gulp-zip for integration with gulp https://www.npmjs.com/package/gulp-zip
 
