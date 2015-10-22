@@ -45,7 +45,7 @@ var handleResponse = function( response, callback ) {
 
 var processFile = function( url, options, stream, callback ) {
 
-	var req = request.put( url );
+	var req = request.put( url , options );
 	if ( options.username && options.password ) {
 		req.auth(options.username, options.password, true);
 	}
