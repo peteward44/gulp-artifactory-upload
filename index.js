@@ -2,12 +2,12 @@
 'use strict';
 // Uses Artifactory's REST API to upload a file to an artifactory repository
 
-var through = require('through2')
-	, gutil = require('gulp-util')
-	, path = require('path')
-	, request = require('request')
-	, streamifier = require('streamifier')
-	, validUrl = require('valid-url');
+var through = require('through2');
+var gutil = require('gulp-util');
+var path = require('path');
+var request = require('request');
+var streamifier = require('streamifier');
+var validUrl = require('valid-url');
 
 	
 var PLUGIN_NAME = 'gulp-artifactory-upload';
@@ -45,7 +45,7 @@ var handleResponse = function( response, callback ) {
 
 var processFile = function( url, options, stream, callback ) {
 
-	var req = request.put( url );
+	var req = request.put( url, options.request );
 	if ( options.username && options.password ) {
 		req.auth(options.username, options.password, true);
 	}
@@ -89,7 +89,7 @@ var deploy = function(options) {
 	}
 	
 	if ( url === undefined || !validUrl.isUri(url) ) {
-		throw new Error( "Invalid URL: '" + url + "'" )
+		throw new Error( "Invalid URL: '" + url + "'" );
 	}
 
 	var func = function(file, enc, callback) {

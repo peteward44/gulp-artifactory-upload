@@ -17,7 +17,10 @@ gulp.task( 'deploy', function() {
 				url: 'http://artifactory.server.com:8081/artifactory/libs-release-local',
 				username: 'user', // optional
 				password: 'password', // optional,
-				rename: function( filename ) { return filename + "1"; } // optional
+				rename: function( filename ) { return filename + "1"; }, // optional
+				request: {
+					// options that are passed to request.put()
+				}
 			} ) )
 		.on('error', gutil.log);
 } );
