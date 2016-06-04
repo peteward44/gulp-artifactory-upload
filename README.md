@@ -18,6 +18,9 @@ gulp.task( 'deploy', function() {
 				username: 'user', // optional
 				password: 'password', // optional,
 				rename: function( filename ) { return filename + "1"; }, // optional
+				properties: {
+					// artifact properties to be appended to the URL
+				},
 				request: {
 					// options that are passed to request.put()
 				}

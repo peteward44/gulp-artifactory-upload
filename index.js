@@ -44,7 +44,6 @@ var handleResponse = function( response, callback ) {
 
 
 var processFile = function( url, options, stream, callback ) {
-
 	var req = request.put( url, options.request );
 	if ( options.username && options.password ) {
 		req.auth(options.username, options.password, true);
@@ -75,7 +74,13 @@ var appendUrl = function( url, options, filename ) {
 	if ( url[ url.length-1 ] !== '/' ) {
 		url += '/';
 	}
-	return url + ( options.rename ? options.rename( filename ) : filename );
+	url += ( options.rename ? options.rename( filename ) : filename );
+    if ( options.properties ) {
+        url += Object.keys( options.properties ).reduce(function( str, key ) {
+            return str + ';' + key + '=' + options.properties[ key ];
+        }, '');
+    }
+    return url;
 };
 
 
