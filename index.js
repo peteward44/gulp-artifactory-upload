@@ -3,11 +3,11 @@
 // Uses Artifactory's REST API to upload a file to an artifactory repository
 
 var through = require('through2');
-var gutil = require('gulp-util');
 var path = require('path');
 var request = require('request');
 var streamifier = require('streamifier');
 var validUrl = require('valid-url');
+var log = require('fancy-log');
 
 	
 var PLUGIN_NAME = 'gulp-artifactory-upload';
@@ -26,7 +26,7 @@ var parseResponse = function( responseData, callback ) {
 		} );
 		callback( errStr );
 	} else {
-		gutil.log('Successfully uploaded ' + response.size + " bytes to " + response.uri );
+		log('Successfully uploaded ' + response.size + " bytes to " + response.uri );
 		callback();
 	}
 };
