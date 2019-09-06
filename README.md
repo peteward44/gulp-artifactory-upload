@@ -1,4 +1,7 @@
 # gulp-artifactory-upload
+
+***This project is no longer maintained***
+
 Gulp plugin to deploy files to a JFrog Artifactory server.
 Unlike grunt-artifactory-artifact, works on Windows/Mac/Linux
 
