@@ -14,7 +14,7 @@
     "gulpfriendly"
   ],
   "ignore": [
-	"test"
+    "test"
   ],
   "dependencies": {
     "fancy-log": "1.3.3",
